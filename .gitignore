@@ -1,0 +1,37 @@
+# Secrets & Environment
+.env
+*.env
+!.env.example
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+venv/
+.venv/
+staticfiles/
+media/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+android/.gradle/
+android/local.properties
+ios/Pods/
+*.lock
+!pubspec.lock
+
+# Docker & Services
+n8n_data/
+postgres_data/
+redis_data/
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
