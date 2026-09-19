@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     # Local apps
     'accounts',
     'messes',
+    'meals',
 ]
 
 MIDDLEWARE = [
