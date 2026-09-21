@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../cycles/presentation/cycle_screen.dart';
 import '../../finances/presentation/finance_screen.dart';
 import '../../meals/presentation/meal_screen.dart';
 import 'mess_controller.dart';
@@ -210,7 +211,7 @@ class MessSelectionScreen extends ConsumerWidget {
                                             );
                                           },
                                           icon: const Icon(Icons.restaurant_menu),
-                                          label: const Text('Open Meal Manager'),
+                                          label: const Text('Meals'),
                                         ),
                                         FilledButton.tonalIcon(
                                           onPressed: () {
@@ -222,7 +223,19 @@ class MessSelectionScreen extends ConsumerWidget {
                                             );
                                           },
                                           icon: const Icon(Icons.account_balance_wallet_outlined),
-                                          label: const Text('Open Finances & Ledger'),
+                                          label: const Text('Finances & Ledger'),
+                                        ),
+                                        OutlinedButton.icon(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => const CycleScreen(),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.date_range_outlined),
+                                          label: const Text('Cycles & Settlement'),
                                         ),
                                       ],
                                     ),
