@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'accounts',
     'messes',
     'meals',
+    'finances',
 ]
 
 MIDDLEWARE = [
@@ -170,3 +171,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Media Files (User uploads like receipts)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
