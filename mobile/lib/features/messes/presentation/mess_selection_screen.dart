@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../finances/presentation/finance_screen.dart';
 import '../../meals/presentation/meal_screen.dart';
 import 'mess_controller.dart';
 
@@ -194,18 +195,36 @@ class MessSelectionScreen extends ConsumerWidget {
                                     if (messState.activeMess?.address != null &&
                                         messState.activeMess!.address!.isNotEmpty)
                                       Text('Address: ${messState.activeMess!.address}'),
-                                    const SizedBox(height: 14),
-                                    FilledButton.icon(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => const MealScreen(),
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.restaurant_menu),
-                                      label: const Text('Open Meal Manager'),
+                                    const SizedBox(height: 16),
+                                    Wrap(
+                                      spacing: 10,
+                                      runSpacing: 10,
+                                      children: [
+                                        FilledButton.icon(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => const MealScreen(),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.restaurant_menu),
+                                          label: const Text('Open Meal Manager'),
+                                        ),
+                                        FilledButton.tonalIcon(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => const FinanceScreen(),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.account_balance_wallet_outlined),
+                                          label: const Text('Open Finances & Ledger'),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),

@@ -19,11 +19,14 @@ class MealRepository {
     String? date,
   }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (date != null) {
+        queryParams['date'] = date;
+      }
+
       final response = await _dio.get(
         ApiConstants.meals(messId),
-        queryParameters: {
-          if (date != null) 'date': date,
-        },
+        queryParameters: queryParams,
       );
 
       List listData = [];

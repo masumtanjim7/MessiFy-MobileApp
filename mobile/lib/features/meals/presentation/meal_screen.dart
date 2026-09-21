@@ -111,7 +111,7 @@ class _MealScreenState extends ConsumerState<MealScreen> {
                       Text(
                         'Logging for: ${user?.fullName ?? "You"}',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                          color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
