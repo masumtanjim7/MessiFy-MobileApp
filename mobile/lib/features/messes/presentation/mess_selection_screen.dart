@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../meals/presentation/meal_screen.dart';
 import 'mess_controller.dart';
 
 class MessSelectionScreen extends ConsumerWidget {
@@ -35,7 +36,10 @@ class MessSelectionScreen extends ConsumerWidget {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isEmpty) return;
@@ -68,7 +72,10 @@ class MessSelectionScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               if (codeCtrl.text.trim().isEmpty) return;
@@ -131,13 +138,18 @@ class MessSelectionScreen extends ConsumerWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.holiday_village_outlined,
-                                    size: 72, color: Colors.grey),
+                                const Icon(
+                                  Icons.holiday_village_outlined,
+                                  size: 72,
+                                  color: Colors.grey,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Welcome, ${user?.fullName ?? ""}!',
                                   style: const TextStyle(
-                                      fontSize: 20, fontWeight: FontWeight.bold),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 const Text(
@@ -173,13 +185,28 @@ class MessSelectionScreen extends ConsumerWidget {
                                     Text(
                                       'Active Mess: ${messState.activeMess?.name}',
                                       style: const TextStyle(
-                                          fontSize: 18, fontWeight: FontWeight.bold),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text('Invite Code: ${messState.activeMess?.inviteCode}'),
                                     if (messState.activeMess?.address != null &&
                                         messState.activeMess!.address!.isNotEmpty)
                                       Text('Address: ${messState.activeMess!.address}'),
+                                    const SizedBox(height: 14),
+                                    FilledButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => const MealScreen(),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.restaurant_menu),
+                                      label: const Text('Open Meal Manager'),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -187,8 +214,10 @@ class MessSelectionScreen extends ConsumerWidget {
                             const SizedBox(height: 20),
                             const Text(
                               'Your Messes',
-                              style:
-                                  TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             ...messState.messes.map(
