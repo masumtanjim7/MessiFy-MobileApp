@@ -3,7 +3,8 @@ from .views import (
     DepositListCreateView, 
     ExpenseListCreateView,
     BalanceSheetView,
-    CloseMonthCycleView
+    CloseMonthCycleView,
+    AutomationDailySummaryView
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('messes/<int:mess_id>/expenses/', ExpenseListCreateView.as_view(), name='expenses_list_create'),
     path('messes/<int:mess_id>/cycles/<int:cycle_id>/balance-sheet/', BalanceSheetView.as_view(), name='cycle_balance_sheet'),
     path('messes/<int:mess_id>/cycles/<int:cycle_id>/close/', CloseMonthCycleView.as_view(), name='close_month_cycle'),
+    path('messes/<int:mess_id>/automation/daily-summary/', AutomationDailySummaryView.as_view(), name='automation_daily_summary'),
 ]
