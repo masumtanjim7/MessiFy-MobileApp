@@ -1,17 +1,19 @@
+from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from messes.models import Membership
 from messes.permissions import IsActiveMessMember, IsMessManager
-from .models import MonthCycle
-from .serializers import MonthCycleSerializer
+from .models import MonthCycle, DailyMeal
+from .serializers import (
+    MonthCycleSerializer, 
+    DailyMealSerializer, 
+    BulkMealSubmitSerializer
+)
 
 
 class MonthCycleListCreateView(generics.ListCreateAPIView):
-    """
-    GET: List all month cycles for a given mess (Active members only).
-    POST: Start a new month cycle (Managers only).
-    """
     serializer_class = MonthCycleSerializer
 
     def get_permissions(self):
@@ -28,9 +30,6 @@ class MonthCycleListCreateView(generics.ListCreateAPIView):
 
 
 class ActiveMonthCycleView(generics.RetrieveAPIView):
-    """
-    GET: Retrieve the currently ACTIVE month cycle for a mess.
-    """
     permission_classes = [IsAuthenticated, IsActiveMessMember]
     serializer_class = MonthCycleSerializer
 
@@ -50,10 +49,6 @@ class ActiveMonthCycleView(generics.RetrieveAPIView):
 
 
 class UpdateMonthCycleStatusView(APIView):
-    """
-    PATCH: Change month state (ACTIVE -> LOCKED -> SETTLED).
-    Managers only.
-    """
     permission_classes = [IsAuthenticated, IsMessManager]
 
     def patch(self, request, mess_id, cycle_id):
@@ -72,3 +67,77 @@ class UpdateMonthCycleStatusView(APIView):
 
         cycle.save()
         return Response(MonthCycleSerializer(cycle).data, status=status.HTTP_200_OK)
+
+
+class DailyMealListView(generics.ListAPIView):
+    """
+    GET: View meal logs for a mess.
+    Supports optional query filters: ?date=YYYY-MM-DD or ?cycle_id=ID
+    """
+    permission_classes = [IsAuthenticated, IsActiveMessMember]
+    serializer_class = DailyMealSerializer
+
+    def get_queryset(self):
+        mess_id = self.kwargs['mess_id']
+        queryset = DailyMeal.objects.filter(cycle__mess_id=mess_id)
+
+        target_date = self.request.query_params.get('date')
+        cycle_id = self.request.query_params.get('cycle_id')
+
+        if target_date:
+            queryset = queryset.filter(date=target_date)
+        if cycle_id:
+            queryset = queryset.filter(cycle_id=cycle_id)
+
+        return queryset
+
+
+class BulkMealEntryView(APIView):
+    """
+    POST: Record or update meals in bulk for all members on a single date.
+    Managers only.
+    """
+    permission_classes = [IsAuthenticated, IsMessManager]
+
+    def post(self, request, mess_id):
+        serializer = BulkMealSubmitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        entry_date = serializer.validated_data['date']
+        entries = serializer.validated_data['entries']
+
+        active_cycle = MonthCycle.objects.filter(mess_id=mess_id, status=MonthCycle.Status.ACTIVE).first()
+        if not active_cycle:
+            return Response(
+                {"detail": "Cannot record meals without an active month cycle."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        saved_records = []
+        with transaction.atomic():
+            for item in entries:
+                membership = Membership.objects.filter(
+                    id=item['membership_id'], 
+                    mess_id=mess_id, 
+                    is_active=True
+                ).first()
+                if not membership:
+                    continue
+
+                meal, _ = DailyMeal.objects.update_or_create(
+                    cycle=active_cycle,
+                    membership=membership,
+                    date=entry_date,
+                    defaults={
+                        'breakfast': item['breakfast'],
+                        'lunch': item['lunch'],
+                        'dinner': item['dinner'],
+                        'notes': item.get('notes', ''),
+                    }
+                )
+                saved_records.append(meal)
+
+        return Response(
+            {"detail": f"Successfully updated {len(saved_records)} meal entries for {entry_date}."},
+            status=status.HTTP_200_OK
+        )
