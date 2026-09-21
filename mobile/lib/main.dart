@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/auth/presentation/login_screen.dart';
+import 'features/messes/presentation/mess_selection_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,27 +38,9 @@ class MessifyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       home: authState.isLoading && authState.status == AuthStatus.initial
-          ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            )
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : authState.status == AuthStatus.authenticated
-              ? Scaffold(
-                  appBar: AppBar(
-                    title: const Text('Messify Dashboard'),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.logout),
-                        onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-                      ),
-                    ],
-                  ),
-                  body: Center(
-                    child: Text(
-                      'Welcome, ${authState.user?.fullName}!',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                )
+              ? const MessSelectionScreen()
               : const LoginScreen(),
     );
   }

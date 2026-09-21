@@ -9,18 +9,38 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Membership
-        fields = ['id', 'user', 'user_name', 'user_email', 'user_phone', 'role', 'is_active', 'joined_at']
+        fields = [
+            'id',
+            'user',
+            'user_name',
+            'user_email',
+            'user_phone',
+            'role',
+            'is_active',
+            'joined_at',
+        ]
         read_only_fields = ['user', 'role', 'joined_at']
 
 
 class MessSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     my_role = serializers.SerializerMethodField()
+    invite_code = serializers.CharField(source='join_code', read_only=True)
 
     class Meta:
         model = Mess
-        fields = ['id', 'name', 'address', 'join_code', 'created_by', 'member_count', 'my_role', 'created_at']
-        read_only_fields = ['join_code', 'created_by', 'created_at']
+        fields = [
+            'id',
+            'name',
+            'address',
+            'join_code',
+            'invite_code',
+            'created_by',
+            'member_count',
+            'my_role',
+            'created_at',
+        ]
+        read_only_fields = ['join_code', 'invite_code', 'created_by', 'created_at']
 
     def get_member_count(self, obj):
         return obj.memberships.filter(is_active=True).count()
@@ -39,16 +59,25 @@ class MessSerializer(serializers.ModelSerializer):
         Membership.objects.create(
             user=user,
             mess=mess,
-            role=Membership.Role.MANAGER
+            role=Membership.Role.MANAGER,
         )
         return mess
 
 
 class JoinMessSerializer(serializers.Serializer):
-    join_code = serializers.CharField(max_length=10, required=True)
+    join_code = serializers.CharField(max_length=10, required=False)
+    invite_code = serializers.CharField(max_length=10, required=False)
 
-    def validate_join_code(self, value):
-        code = value.strip().upper()
+    def validate(self, attrs):
+        code = attrs.get('join_code') or attrs.get('invite_code')
+        if not code:
+            raise serializers.ValidationError(
+                {"join_code": "Join/Invite code is required."}
+            )
+        code = code.strip().upper()
         if not Mess.objects.filter(join_code=code).exists():
-            raise serializers.ValidationError("Invalid join code. No mess found with this code.")
-        return code
+            raise serializers.ValidationError(
+                {"join_code": "Invalid join code. No mess found with this code."}
+            )
+        attrs['join_code'] = code
+        return attrs
