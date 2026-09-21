@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../domain/finance_models.dart';
 import 'finance_controller.dart';
 
 class FinanceScreen extends ConsumerWidget {
   const FinanceScreen({super.key});
 
   void _showDepositDialog(BuildContext context, WidgetRef ref) {
+    final finState = ref.read(financeControllerProvider);
+    final user = ref.read(authControllerProvider).user;
+    final List<MessMembershipModel> members = finState.members;
+
+    int? selectedMemberId;
+    if (members.isNotEmpty) {
+      try {
+        final match = members.firstWhere(
+          (m) =>
+              (user?.id != null && m.userId == user!.id) ||
+              (user?.email != null &&
+                  user!.email.isNotEmpty &&
+                  m.userEmail.toLowerCase() == user.email.toLowerCase()),
+        );
+        selectedMemberId = match.id;
+      } catch (_) {
+        selectedMemberId = members.first.id;
+      }
+    }
+
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -36,6 +58,35 @@ class FinanceScreen extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ),
+
+                if (members.isNotEmpty) ...[
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedMemberId,
+                    decoration: const InputDecoration(
+                      labelText: 'Deposit For Member',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: members.map((MessMembershipModel m) {
+                      final isCurrent =
+                          (user?.id != null && m.userId == user!.id) ||
+                          (user?.email != null &&
+                              user!.email.isNotEmpty &&
+                              m.userEmail.toLowerCase() == user.email.toLowerCase());
+                      return DropdownMenuItem<int>(
+                        value: m.id,
+                        child: Text(
+                          '${m.userName}${isCurrent ? " (You)" : ""}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setDialogState(() => selectedMemberId = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 TextField(
                   controller: amountCtrl,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -70,6 +121,11 @@ class FinanceScreen extends ConsumerWidget {
                         return;
                       }
 
+                      if (selectedMemberId == null) {
+                        setDialogState(() => localError = 'No member selected');
+                        return;
+                      }
+
                       setDialogState(() {
                         isSubmitting = true;
                         localError = null;
@@ -77,7 +133,12 @@ class FinanceScreen extends ConsumerWidget {
 
                       final err = await ref
                           .read(financeControllerProvider.notifier)
-                          .addDeposit(amt, dateStr, noteCtrl.text.trim());
+                          .addDeposit(
+                            amount: amt,
+                            date: dateStr,
+                            membershipId: selectedMemberId!,
+                            notes: noteCtrl.text.trim(),
+                          );
 
                       if (err == null) {
                         if (context.mounted) Navigator.pop(ctx);

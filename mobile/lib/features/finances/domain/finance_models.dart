@@ -24,6 +24,40 @@ class MonthCycleModel {
   }
 }
 
+class MessMembershipModel {
+  final int id;
+  final int userId;
+  final String userName;
+  final String userEmail;
+  final String userPhone;
+  final String role;
+  final bool isActive;
+
+  const MessMembershipModel({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+    required this.userPhone,
+    required this.role,
+    required this.isActive,
+  });
+
+  factory MessMembershipModel.fromJson(Map<dynamic, dynamic> json) {
+    return MessMembershipModel(
+      id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
+      userId: json['user'] is int
+          ? json['user'] as int
+          : int.tryParse(json['user']?.toString() ?? '0') ?? 0,
+      userName: json['user_name']?.toString() ?? 'Member',
+      userEmail: json['user_email']?.toString() ?? '',
+      userPhone: json['user_phone']?.toString() ?? '',
+      role: (json['role']?.toString() ?? 'MEMBER').toUpperCase(),
+      isActive: json['is_active'] as bool? ?? true,
+    );
+  }
+}
+
 class DepositModel {
   final int id;
   final String userName;
@@ -42,7 +76,10 @@ class DepositModel {
   factory DepositModel.fromJson(Map<dynamic, dynamic> json) {
     return DepositModel(
       id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
-      userName: json['user_name']?.toString() ?? 'Member',
+      userName: json['user_name']?.toString() ??
+          json['member_name']?.toString() ??
+          json['membership_name']?.toString() ??
+          'Member',
       amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
       date: json['date']?.toString() ?? '',
       notes: json['notes']?.toString(),
@@ -81,7 +118,7 @@ class MemberLedgerRow {
   final double totalMeals;
   final double totalDeposits;
   final double mealCost;
-  final double balance; // positive = refund due, negative = payable
+  final double balance;
 
   const MemberLedgerRow({
     required this.memberName,

@@ -8,6 +8,7 @@ class FinanceState {
   final BalanceSheetModel? balanceSheet;
   final List<DepositModel> deposits;
   final List<ExpenseModel> expenses;
+  final List<MessMembershipModel> members;
   final bool isLoading;
   final String? errorMessage;
 
@@ -16,6 +17,7 @@ class FinanceState {
     this.balanceSheet,
     this.deposits = const [],
     this.expenses = const [],
+    this.members = const [],
     this.isLoading = false,
     this.errorMessage,
   });
@@ -25,6 +27,7 @@ class FinanceState {
     BalanceSheetModel? balanceSheet,
     List<DepositModel>? deposits,
     List<ExpenseModel>? expenses,
+    List<MessMembershipModel>? members,
     bool? isLoading,
     String? errorMessage,
   }) {
@@ -33,6 +36,7 @@ class FinanceState {
       balanceSheet: balanceSheet ?? this.balanceSheet,
       deposits: deposits ?? this.deposits,
       expenses: expenses ?? this.expenses,
+      members: members ?? this.members,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
     );
@@ -66,12 +70,14 @@ class FinanceController extends Notifier<FinanceState> {
 
       final deposits = await _repo.getDeposits(activeMess.id);
       final expenses = await _repo.getExpenses(activeMess.id);
+      final members = await _repo.getMemberships(activeMess.id);
 
       state = FinanceState(
         activeCycle: cycle,
         balanceSheet: sheet,
         deposits: deposits,
         expenses: expenses,
+        members: members,
         isLoading: false,
       );
     } catch (e) {
@@ -82,7 +88,12 @@ class FinanceController extends Notifier<FinanceState> {
     }
   }
 
-  Future<String?> addDeposit(double amount, String date, String? notes) async {
+  Future<String?> addDeposit({
+    required double amount,
+    required String date,
+    required int membershipId,
+    String? notes,
+  }) async {
     final activeMess = ref.read(messControllerProvider).activeMess;
     if (activeMess == null) return 'No active mess selected';
 
@@ -92,7 +103,7 @@ class FinanceController extends Notifier<FinanceState> {
 
     final cycleId = state.activeCycle?.id;
     if (cycleId == null) {
-      return 'No active month cycle found for this mess. Please create one in Admin.';
+      return 'No active month cycle found for this mess. Please create one in Cycles.';
     }
 
     try {
@@ -100,6 +111,7 @@ class FinanceController extends Notifier<FinanceState> {
         messId: activeMess.id,
         amount: amount,
         date: date,
+        membershipId: membershipId,
         notes: notes,
         cycleId: cycleId,
       );
@@ -122,7 +134,7 @@ class FinanceController extends Notifier<FinanceState> {
 
     final cycleId = state.activeCycle?.id;
     if (cycleId == null) {
-      return 'No active month cycle found for this mess. Please create one in Admin.';
+      return 'No active month cycle found for this mess. Please create one in Cycles.';
     }
 
     try {

@@ -25,7 +25,6 @@ class FinanceRepository {
   }
 
   Future<MonthCycleModel?> getActiveCycle(int messId) async {
-    // 1. Try direct active cycle endpoint
     try {
       final response = await _dio.get(ApiConstants.activeCycle(messId));
       if (response.data != null && response.data is Map) {
@@ -33,7 +32,6 @@ class FinanceRepository {
       }
     } catch (_) {}
 
-    // 2. Fallback: list cycles and pick the active or first cycle
     try {
       final response = await _dio.get('${ApiConstants.messes}$messId/cycles/');
       List list = [];
@@ -52,6 +50,30 @@ class FinanceRepository {
     } catch (_) {}
 
     return null;
+  }
+
+  Future<List<MessMembershipModel>> getMemberships(int messId) async {
+    Response? response;
+    try {
+      response = await _dio.get('${ApiConstants.messes}$messId/memberships/');
+    } catch (_) {
+      try {
+        response = await _dio.get('${ApiConstants.messes}$messId/members/');
+      } catch (_) {}
+    }
+
+    if (response == null || response.data == null) return [];
+
+    List listData = [];
+    if (response.data is List) {
+      listData = response.data;
+    } else if (response.data is Map && response.data['results'] is List) {
+      listData = response.data['results'];
+    }
+
+    return listData
+        .map((j) => MessMembershipModel.fromJson(Map<dynamic, dynamic>.from(j)))
+        .toList();
   }
 
   Future<BalanceSheetModel> getBalanceSheet(int messId, int cycleId) async {
@@ -85,11 +107,13 @@ class FinanceRepository {
     required int messId,
     required double amount,
     required String date,
+    required int membershipId,
     String? notes,
     int? cycleId,
   }) async {
     try {
       final payload = <String, dynamic>{
+        'membership': membershipId,
         'amount': amount,
         'date': date,
       };
